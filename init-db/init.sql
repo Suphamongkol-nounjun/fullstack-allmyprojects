@@ -1,3 +1,4 @@
+SET GLOBAL host_cache_size=0;
 CREATE TABLE `attractions` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
