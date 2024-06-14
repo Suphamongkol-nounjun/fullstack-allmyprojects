@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  frontend:
+    build: ./Client/front-end-myprojects
+    ports:
+      - '3000:3000'
+    networks:
+      - mynetwork
+    restart: always
+
+networks:
+  mynetwork:
+    driver: bridge
