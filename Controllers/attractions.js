@@ -13,7 +13,7 @@ exports.list = async (req, res) => {
 };
 
 exports.test = async (req, res) => {
-  res.json({ msg: "hello world" });
+  res.json({ msg: "hello attractions" });
 };
 
 exports.read = async (req, res) => {

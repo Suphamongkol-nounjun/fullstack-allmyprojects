@@ -7,6 +7,12 @@ CREATE TABLE `attractions` (
   `latitude` decimal(11,7) NOT NULL,
   `longitude` decimal(11,7) NOT NULL
 );
+CREATE TABLE `users` (
+  `id` INT NOT NULL AUTO_INCREMENT , 
+  `email` VARCHAR(255) NOT NULL , 
+  `password` VARCHAR(255) NOT NULL , 
+  PRIMARY KEY (`id`), 
+  UNIQUE `email` (`email`));
 
 INSERT INTO `attractions` (`id`, `name`, `detail`, `coverimage`, `latitude`, `longitude`) VALUES
 (1, 'Phi Phi Islands', 'Phi Phi Islands are a group of islands in Thailand between the large island of Phuket and the Malacca Coastal Strait of Thailand.', 'https://www.melivecode.com/attractions/1.jpg', '7.7376190', '98.7068755'),
