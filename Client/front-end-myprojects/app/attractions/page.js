@@ -1,21 +1,33 @@
-import React from 'react'
+"use client";
+import React, { useState, useEffect } from "react";
+import { checktoken } from "../utils/checktoken";
+
 import { 
   Card, CardActions, CardContent, CardMedia, Button, Typography, Grid 
 } from '@mui/material'
 
-export async function getData() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/attraction`)
-  if (!res.ok) {
-    throw new Error('Failed to fetch data')
-  }
-  return res.json()
+export function getData() {
+  return fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/attraction`)
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      return res.json();
+    });
 }
 
-export default async function page() {
+export default function Page() {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    checktoken();
+    getData().then(result => setData(result)).catch(error => console.error(error));
+  }, []);
+
   if (!process.env.NEXT_PUBLIC_API_URL) {
-    return null
+    return null;
   }
-  const data = await getData()
+
   return (
     <div>
       <Typography variant='h5'>Attractions</Typography>
@@ -37,7 +49,7 @@ export default async function page() {
                 </Typography>
               </CardContent>
               <CardActions>
-                <a href={`/attraction/${attraction.id}`}>
+                <a href={`/attractions/${attraction.id}`}>
                   <Button size="small">Learn More</Button>
                 </a>
               </CardActions>
@@ -46,5 +58,5 @@ export default async function page() {
         ))}
       </Grid>
     </div>
-  )
+  );
 }

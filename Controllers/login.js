@@ -25,10 +25,7 @@ exports.register = async (req, res) => {
     })
     } catch (error) {
         console.log('error',error)
-    res.json({
-        message: "insert error",
-        error
-    })
+        res.status(400).json({ message: "Email ซ้ำ",error })
     }
 };
 
@@ -50,7 +47,7 @@ exports.loginsavetoken = async (req, res)=>{
     };
 
     //สร้าง jwt token
-    const token = jwt.sign({email, role: "admin"}, secret, { expiresIn: '1h'})
+    const token = jwt.sign({email, role: "admin"}, secret, { expiresIn: '1m'})
     res.json({message: "login success",
         token
     })
@@ -63,7 +60,7 @@ exports.loginsavetoken = async (req, res)=>{
         })
     }
 
-};
+}; 
 
 exports.loginsavecookie = async (req, res)=>{
     try {

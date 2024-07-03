@@ -1,26 +1,40 @@
-import React from 'react'
-import { 
-  Container, Card, CardActions, CardContent, CardMedia, Button, Typography
-} from '@mui/material';
+"use client";
+import React, { useState, useEffect } from "react";
+import { Container, Card, CardMedia, CardContent, Typography, Button } from '@mui/material';
+import { checktoken } from "@/app/utils/checktoken";
 
 export async function getData(id) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/attraction/${id}/`)
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/attraction/${id}/`);
   if (!res.ok) {
-    throw new Error('Failed to fetch data')
+    throw new Error('Failed to fetch data');
   }
-  return res.json()
+  return res.json();
 }
 
-export default async function page({ params }) {
+const Page = ({ params }) => {
+  const [data, setData] = useState(null); // เปลี่ยนเป็น null แทนการใช้งาน []
+
   if (!process.env.NEXT_PUBLIC_API_URL) {
-    return null
+    return null; // ถ้าไม่มี NEXT_PUBLIC_API_URL จะ return ก่อนเลย
   }
-  const id = params.id
-  const data = await getData(id)
-  console.log(data.length)
+
+  const fetchData = async () => {
+    try {
+      const result = await getData(params.id);
+      setData(result);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  useEffect(() => {
+    checktoken(); // สมมติว่าต้องการเรียก checktoken ทุกครั้งที่ component mount
+    fetchData(); // เรียก fetchData หลังจาก checktoken เสร็จสิ้น
+  }, [params.id]); // ให้ useEffect รันใหม่เมื่อ params.id เปลี่ยนแปลง
+
   return (
     <Container maxWidth="md" sx={{ mt: 2 }}>
-      { data.length > 0 &&
+      {data && ( // ตรวจสอบว่ามี data อยู่หรือไม่ก่อน render
         <Card>
           <CardContent>
             <Typography gutterBottom variant="h5" component="div">
@@ -38,7 +52,9 @@ export default async function page({ params }) {
             </Typography>
           </CardContent>
         </Card>
-      }
+      )}
     </Container>
-  )
+  );
 }
+
+export default Page;
