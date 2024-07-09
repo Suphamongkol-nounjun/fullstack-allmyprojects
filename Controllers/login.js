@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt');
 const session = require("express-session");
 const jwt = require('jsonwebtoken');
 const secret = process.env.JWT_SECRET;
+const {generateOTP, checkEmailExists, getLatestOTP, sendEmail} = require("../utils/otp-utils")
+const moment = require('moment-timezone');
 
 exports.testlogin = async (req, res) => {
     res.json({ msg: "้hello login" });
@@ -162,6 +164,7 @@ exports.userstoken = async (req, res) =>{
         })
     }
 }
+
 exports.userscookie = async (req, res) =>{
     try {
         const authToken = req.cookies.token
@@ -187,6 +190,7 @@ exports.userscookie = async (req, res) =>{
         })
     }
 }
+
 exports.userssession = async (req, res) =>{
     try {
 
@@ -208,4 +212,74 @@ exports.userssession = async (req, res) =>{
         })
     }
 }
+
+exports.generateOtp = async (req, res) => {
+
+    const { email } = req.body;
+    try {
+         const emailExists = await checkEmailExists(email);
+    if (!emailExists) {
+      return res.status(404).json({ message: 'Email not found' });
+    }
+        // const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otp = await generateOTP(email);
+        const createDate = moment().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
+        const expireDate = moment().tz('Asia/Bangkok').add(5, 'minutes').format('YYYY-MM-DD HH:mm:ss');
+        const [results] = await poolPromise.query('INSERT INTO otplog SET ?', { otp, email, createDate, expireDate });
+        res.status(200).json({ email,otp,results });
+    
+    } catch (error) {
+        console.log('error',error)
+        res.status(400).json({ message: "Email ซ้ำ",error })
+    }
+};
+
+exports.sendOtp = async (req, res) => {
+
+    const { email } = req.body;
+    const otp = await getLatestOTP(email);
+    console.log('otp: ', otp)
+  
+    if (!otp) {
+      return res.status(400).json({ message: 'OTP not generated' });
+    }
+    try {
+     await sendEmail(email, otp);
+     res.status(200).json({ message: `OTP sent เรียบร้อย` });
+    
+    } catch (error) {
+        console.log('error',error)
+        res.status(500).json({ message: 'Error sending OTP', error });
+    }
+};
+
+exports.changePassword = async (req, res) => {
+
+    const {email, oldpassword, newpassword} = req.body
+    if (oldpassword === newpassword) {
+        return res.status(400).json({ message: "รหัสผ่านใหม่และเก่าต้องไม่เหมือนกัน" });
+    }
+
+    try {
+    const [rows] = await poolPromise.query('SELECT password FROM users WHERE email = ?', [email]);
+    // console.log(rows)
+    const password = rows[0].password;
+    // console.log('passwordemail: ', password)
+    const matchPassword = await bcrypt.compare(oldpassword, password)
+    if(!matchPassword){
+        res.status(400).json({
+            message: "รหัสผ่านเก่า ไม่ถูกต้อง"
+        })
+        return false
+    };
+    // console.log('password เหมือนกัน')
+    const hashedNewPassword = await bcrypt.hash(newpassword, 10); // ใช้ bcrypt เพื่อเข้ารหัส newpassword
+    await poolPromise.query('UPDATE users SET password = ? WHERE email = ?', [hashedNewPassword, email]);
+    res.status(200).json({ message: "แก้ไขรหัสผ่านเรียบร้อย" });
+    
+    } catch (error) {
+        console.log('error',error)
+        res.status(400).json({ message: 'Error change password', error });
+    }
+};
 

@@ -7,8 +7,12 @@ const {
     loginsavetoken,
     loginsavecookie,
     loginsession,
-    userssession
+    userssession,
+    generateOtp,
+    sendOtp,
+    changePassword
 } = require('../Controllers/login')
+const { generateOTP } = require('../utils/otp-utils')
 const router = express.Router()
 
 router.get('/testlogin', testlogin)
@@ -19,6 +23,9 @@ router.post('/loginsession', loginsession)
 router.get('/userstoken', userstoken)
 router.get('/userscookie', userscookie)
 router.get('/userssession', userssession)
+router.post('/generate-otp', generateOtp)
+router.post('/send-otp', sendOtp)
+router.post('/changepassword', changePassword)
 
 
 module.exports = router
