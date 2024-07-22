@@ -24,6 +24,7 @@ services:
       PMA_HOST: db
       PMA_USER: min
       PMA_PASSWORD: P@ssword1234
+      UPLOAD_LIMIT: 300M
     ports:
       - '8080:80'
     depends_on:
@@ -31,6 +32,21 @@ services:
     networks:
       - mynetwork
     restart: always
+
+  adminer:
+    image: adminer
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - '7070:8080'
+    depends_on:
+      - db
+    networks:
+      - mynetwork
+    restart: always
+    command: ["php", "-d", "post_max_size=500M", "-d", "upload_max_filesize=500M", "-S", "0.0.0.0:8080", "-t", "/var/www/html"]
+
+
 
 networks:
   mynetwork:

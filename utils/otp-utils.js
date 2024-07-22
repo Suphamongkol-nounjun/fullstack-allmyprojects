@@ -29,7 +29,7 @@ async function checkEmailExists(email) {
     const [rows] = await poolPromise.query('SELECT email FROM users WHERE email = ?', [email]);
     return rows.length > 0;
 }
-  async function getLatestOTP(email) {
+async function getLatestOTP(email) {
     try {
         const [rows] = await poolPromise.query('SELECT otp FROM otplog WHERE email = ? ORDER BY createDate DESC LIMIT 1', [email]);
         console.log(rows)

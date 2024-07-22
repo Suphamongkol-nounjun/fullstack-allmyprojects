@@ -10,9 +10,9 @@ const {
     userssession,
     generateOtp,
     sendOtp,
-    changePassword
+    changePassword,
+    checkOtp
 } = require('../Controllers/login')
-const { generateOTP } = require('../utils/otp-utils')
 const router = express.Router()
 
 router.get('/testlogin', testlogin)
@@ -25,6 +25,7 @@ router.get('/userscookie', userscookie)
 router.get('/userssession', userssession)
 router.post('/generate-otp', generateOtp)
 router.post('/send-otp', sendOtp)
+router.post('/check-otp', checkOtp)
 router.post('/changepassword', changePassword)
 
 

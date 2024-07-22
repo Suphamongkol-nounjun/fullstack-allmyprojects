@@ -253,6 +253,24 @@ exports.sendOtp = async (req, res) => {
     }
 };
 
+exports.checkOtp = async (req, res) => {
+
+    const { email, otp } = req.body;
+    const otpcheck = await getLatestOTP(email);
+    console.log('otp ใน db: ', otpcheck,'otp ที่กรอกมา : ', otp)
+  
+    try {
+        if (otp !== otpcheck) {
+            return res.status(400).json({ message: "OTP does not match" });
+        }
+        res.status(200).json({ message: `OTP ถูกต้อง` });
+    
+    } catch (error) {
+        console.log('error',error)
+        res.status(500).json({ message: 'Error Submit OTP', error });
+    }
+};
+
 exports.changePassword = async (req, res) => {
 
     const {email, oldpassword, newpassword} = req.body
