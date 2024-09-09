@@ -11,12 +11,14 @@ const {
     generateOtp,
     sendOtp,
     changePassword,
-    checkOtp
+    checkOtp,
+    login
 } = require('../Controllers/login')
 const router = express.Router()
 
 router.get('/testlogin', testlogin)
 router.post('/register', register)
+router.post('/login', login)
 router.post('/loginsavetoken', loginsavetoken)
 router.post('/loginsavecookie', loginsavecookie)
 router.post('/loginsession', loginsession)

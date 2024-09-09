@@ -10,14 +10,18 @@ exports.testlogin = async (req, res) => {
     res.json({ msg: "้hello login" });
 };
 
+
 exports.register = async (req, res) => {
     
     try {
     const {email, password} = req.body
+    const { v4: uuidv4 } = require('uuid');
     const passwordHash = await bcrypt.hash(password, 10)
     const userData ={
         email,
-        password: passwordHash
+        password: passwordHash,
+        role: "user",
+        uuid: uuidv4()
     }
     
     const [results] = await poolPromise.query('INSERT INTO users SET ?', userData)
@@ -27,9 +31,32 @@ exports.register = async (req, res) => {
     })
     } catch (error) {
         console.log('error',error)
-        res.status(400).json({ message: "Email ซ้ำ",error })
+        res.status(400).json({ message: "Email Duplicate",error })
     }
 };
+
+exports.login = async (req, res)=>{
+    try {
+    const {email, password} = req.body
+    const [results] = await poolPromise.query('SELECT * FROM users where email = ?', email)
+    if (results.length === 0) {
+        return res.status(400).json({ message: "User not found or wrong email" });
+    }
+    const user = results[0]
+
+    res.json({user})
+
+    } catch (error) {
+        console.log('error', error)
+        res.status(401).json({
+            message: "login fail",
+            error
+        })
+    }
+
+}; 
+
+
 
 exports.loginsavetoken = async (req, res)=>{
     try {
@@ -148,7 +175,7 @@ exports.userstoken = async (req, res) =>{
         console.log('user', user, 'email:', user.email)
         const [checkResults] = await poolPromise.query("SELECT * FROM users where email = ?", user.email)
         if (!checkResults[0]){
-            throw { message: 'user now found'}
+            throw { message: 'user not found'}
         }
 
         const [results] = await poolPromise.query("SELECT * FROM users where email= ?", user.email)
