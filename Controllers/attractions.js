@@ -16,6 +16,10 @@ exports.test = async (req, res) => {
   res.json({ msg: "hello attractions" });
 };
 
+exports.helloworld = async (req, res) => {
+  res.json({ msg: "hello world" });
+};
+
 exports.read = async (req, res) => {
   const id = req.params.id;
   pool.query(

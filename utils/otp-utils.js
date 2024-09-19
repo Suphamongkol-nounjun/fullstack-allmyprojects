@@ -31,10 +31,10 @@ async function checkEmailExists(email) {
 }
 async function getLatestOTP(email) {
     try {
-        const [rows] = await poolPromise.query('SELECT otp FROM otplog WHERE email = ? ORDER BY createDate DESC LIMIT 1', [email]);
+        const [rows] = await poolPromise.query('SELECT * FROM otplog WHERE email = ? ORDER BY createDate DESC LIMIT 1', [email]);
         console.log(rows)
       if (rows.length > 0) {
-        return rows[0].otp;
+        return { otp: rows[0].otp, expireDate: rows[0].expireDate };
       } else {
         return null;
       }

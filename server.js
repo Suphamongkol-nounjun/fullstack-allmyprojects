@@ -13,6 +13,10 @@ require('dotenv').config();
 
 const app = express();
 
+app.get('/hellooworld', (req, res) => {
+    res.send('Hello, World!');
+  });
+
 // app.use(express.json);
 app.use(cors({
     credentials: true,
@@ -28,8 +32,10 @@ app.use(session({
 
 
 
-readdirSync('./Routes')
-    .map((r)=>app.use('/api', require('./Routes/'+r)))
+readdirSync('./Routes').map((r) => {
+    // console.log(`Loading route: ${r}`);
+    app.use('/api', require('./Routes/' + r));
+  });
 
 try {
     app.listen(process.env.PORT_RUN, () => {

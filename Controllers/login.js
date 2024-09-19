@@ -265,13 +265,13 @@ exports.sendOtp = async (req, res) => {
 
     const { email } = req.body;
     const otp = await getLatestOTP(email);
-    console.log('otp: ', otp)
+    console.log('otp: ', otp.otp)
   
-    if (!otp) {
+    if (!otp.otp) {
       return res.status(400).json({ message: 'OTP not generated' });
     }
     try {
-     await sendEmail(email, otp);
+     await sendEmail(email, otp.otp);
      res.status(200).json({ message: `OTP sent เรียบร้อย` });
     
     } catch (error) {
@@ -283,43 +283,59 @@ exports.sendOtp = async (req, res) => {
 exports.checkOtp = async (req, res) => {
 
     const { email, otp } = req.body;
-    const otpcheck = await getLatestOTP(email);
-    console.log('otp ใน db: ', otpcheck,'otp ที่กรอกมา : ', otp)
-  
-    try {
-        if (otp !== otpcheck) {
-            return res.status(400).json({ message: "OTP does not match" });
-        }
-        res.status(200).json({ message: `OTP ถูกต้อง` });
-    
-    } catch (error) {
-        console.log('error',error)
-        res.status(500).json({ message: 'Error Submit OTP', error });
+const otpcheck = await getLatestOTP(email);
+const currentDate = moment().tz('Asia/Bangkok');
+console.log('otp ใน db: ', otpcheck.otp,'expireDate ใน db: ', otpcheck.otp, 'otp ที่กรอกมา : ', otp,'Date ปัจจุบัน: ', currentDate);
+
+try {
+    // Check if OTP is found in the database
+    if (!otpcheck) {
+        return res.status(400).json({ message: "OTP not found" });
     }
+
+    // Check if the OTP matches
+    if (otp !== otpcheck.otp) {
+        return res.status(400).json({ message: "OTP does not match" });
+    }
+
+    const expireDate = moment(otpcheck.expireDate); // convert expireDate to a Moment object
+    if (currentDate.isAfter(expireDate)) {
+        return res.status(400).json({ message: "OTP has expired" });
+    }
+
+    res.status(200).json({ message: `OTP ถูกต้อง` });
+
+} catch (error) {
+    console.log('error', error);
+    res.status(500).json({ message: 'Error Submit OTP', error });
+}
 };
 
 exports.changePassword = async (req, res) => {
 
     const {email, oldpassword, newpassword} = req.body
-    if (oldpassword === newpassword) {
-        return res.status(400).json({ message: "รหัสผ่านใหม่และเก่าต้องไม่เหมือนกัน" });
-    }
+    const passwordHash = await bcrypt.hash(newpassword, 10)
+    // if (oldpassword === newpassword) {
+    //     return res.status(400).json({ message: "รหัสผ่านใหม่และเก่าต้องไม่เหมือนกัน" });
+    // }
 
     try {
-    const [rows] = await poolPromise.query('SELECT password FROM users WHERE email = ?', [email]);
-    // console.log(rows)
-    const password = rows[0].password;
-    // console.log('passwordemail: ', password)
-    const matchPassword = await bcrypt.compare(oldpassword, password)
-    if(!matchPassword){
-        res.status(400).json({
-            message: "รหัสผ่านเก่า ไม่ถูกต้อง"
-        })
-        return false
-    };
+    // const [rows] = await poolPromise.query('SELECT password FROM users WHERE email = ?', [email]);
+    // // console.log(rows)
+    // const password = rows[0].password;
+    // // console.log('passwordemail: ', password)
+    // const matchPassword = await bcrypt.compare(oldpassword, password)
+    // if(!matchPassword){
+    //     res.status(400).json({
+    //         message: "รหัสผ่านเก่า ไม่ถูกต้อง"
+    //     })
+    //     return false
+    // };
     // console.log('password เหมือนกัน')
-    const hashedNewPassword = await bcrypt.hash(newpassword, 10); // ใช้ bcrypt เพื่อเข้ารหัส newpassword
-    await poolPromise.query('UPDATE users SET password = ? WHERE email = ?', [hashedNewPassword, email]);
+    // const hashedNewPassword = await bcrypt.hash(newpassword, 10); // ใช้ bcrypt เพื่อเข้ารหัส newpassword
+    // await poolPromise.query('UPDATE users SET password = ? WHERE email = ?', [hashedNewPassword, email]);
+    await poolPromise.query('UPDATE users SET password = ? WHERE email = ?', [passwordHash, email]);
+    await poolPromise.query('DELETE FROM otplog WHERE email = ?',[email]);
     res.status(200).json({ message: "แก้ไขรหัสผ่านเรียบร้อย" });
     
     } catch (error) {
