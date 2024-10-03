@@ -52,7 +52,7 @@ function ResetPasswordPage() {
         body: JSON.stringify({ email }),
       });
 
-      const generateData = await generateRes.json();
+      // const generateData = await generateRes.json();
 
       if (!generateRes.ok) {
         const errorData = await generateRes.json();
